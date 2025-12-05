@@ -14,10 +14,10 @@ public class App implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(App.class);
 
-    @Value(            "${normal.property:undefined}"    )
+    @Value("${normal.property:undefined}")
     private String normalProperty;
 
-    @Value(            "${prod.property:undefined}"    )
+    @Value("${prod.property:undefined}")
     private String prodProperty;
 
     public static void main(String[] args) {
