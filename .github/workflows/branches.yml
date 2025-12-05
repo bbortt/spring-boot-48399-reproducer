@@ -1,0 +1,64 @@
+name: Application CI
+
+on:
+  push:
+    branches:
+      - '**'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: 'Build and Test'
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+      - name: Check if PR exists
+        uses: 8BitJonny/gh-get-current-pr@4.0.0
+        id: check
+        with:
+          filterOutClosed: true
+          filterOutDraft: true
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        if: github.ref == 'refs/heads/main' || steps.check.outputs.pr_found == 'false'
+        with:
+          cache: maven
+          distribution: 'temurin'
+          java-version: 25
+      - name: Fetch Helm Dependencies
+        if: github.ref == 'refs/heads/main' || steps.check.outputs.pr_found == 'false'
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm dependency build
+        working-directory: 'helm/charts/snow-white'
+      - name: Build with Maven
+        if: github.ref == 'refs/heads/main' || steps.check.outputs.pr_found == 'false'
+        run: ./mvnw -B -Pprod verify
+      - name: Fetch References
+        if: github.ref == 'refs/heads/main' || steps.check.outputs.pr_found == 'false'
+        run: git fetch --unshallow origin
+      - name: Cache SonarQube Packages
+        uses: actions/cache@v4
+        if: github.ref == 'refs/heads/main' || steps.check.outputs.pr_found == 'false'
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Sonar Analysis
+        if: github.ref == 'refs/heads/main' || steps.check.outputs.pr_found == 'false'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          ./mvnw -B sonar:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=bbortt-github \
+            -Dsonar.projectKey=bbortt_snow-white
