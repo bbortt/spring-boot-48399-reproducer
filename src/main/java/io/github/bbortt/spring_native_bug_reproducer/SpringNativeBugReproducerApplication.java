@@ -1,18 +1,17 @@
-package io.github.bbortt.spring.bug;
+package io.github.bbortt.spring_native_bug_reproducer;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.PropertySource;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 @SpringBootApplication
-@PropertySource("classpath:application-prod.yaml")
-public class App implements CommandLineRunner {
+public class SpringNativeBugReproducerApplication implements CommandLineRunner {
 
-    private static final Logger log = LoggerFactory.getLogger(App.class);
+    private static final Logger log = getLogger(SpringNativeBugReproducerApplication.class);
 
     @Value("${normal.property:undefined}")
     private String normalProperty;
@@ -21,7 +20,7 @@ public class App implements CommandLineRunner {
     private String prodProperty;
 
     public static void main(String[] args) {
-        SpringApplication.run(App.class, args);
+        SpringApplication.run(SpringNativeBugReproducerApplication.class, args);
     }
 
     @Override

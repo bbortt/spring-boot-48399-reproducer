@@ -1,5 +1,2 @@
-management:
-  server:
-    port: 8090
 prod:
-  property: 'defined'
+  property: bar
